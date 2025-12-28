@@ -1,21 +1,14 @@
-[providers]
-dotnet = "7.0"
-
 [phases.setup]
 nixPkgs = ["dotnet-sdk_7"]
 
 [phases.install]
-cmds = [
-    "dotnet restore"
-]
+cmds = ["dotnet restore"]
 
 [phases.build]
-cmds = [
-    "dotnet publish -c Release -o /app/publish --no-restore"
-]
+cmds = ["dotnet publish -c Release -o ./ --no-restore"]
 
 [start]
-cmd = "dotnet /app/publish/programacion-proyecto-backend.dll"
+cmd = "dotnet ./programacion-proyecto-backend.dll"
 
 [variables]
 ASPNETCORE_URLS = "http://+:$PORT"
