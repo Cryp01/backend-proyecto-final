@@ -1,15 +1,11 @@
 [phases.setup]
 nixPkgs = ["dotnet-sdk_7"]
 
-[phases.install]
-cmds = ["dotnet restore"]
-
 [phases.build]
-cmds = ["dotnet publish -c Release -o ./ --no-restore"]
+# Forzamos la salida a una carpeta llamada 'publish'
+cmds = ["dotnet publish -c Release -o publish"]
 
 [start]
-cmd = "dotnet ./programacion-proyecto-backend.dll"
-
-[variables]
-ASPNETCORE_URLS = "http://+:$PORT"
-
+# Apuntamos a la carpeta que definimos arriba
+# Quitamos el '/' inicial de la ruta para que sea relativo al directorio de trabajo
+cmd = "dotnet publish/programacion-proyecto-backend.dll"
