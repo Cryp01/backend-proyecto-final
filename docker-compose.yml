@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '${PORT}:${PORT}'
+      - '5148:5148'
     environment:
       - 'PORT=${PORT}'
       - 'ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}'

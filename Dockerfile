@@ -24,13 +24,14 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 # Copy published app
 COPY --from=publish /app/publish .
 
-# Expose port (will be set by PORT environment variable)
-EXPOSE 8080
+# Expose port (default, actual port is set via PORT environment variable at runtime)
+EXPOSE 5148
 
 # Set environment variables
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV PORT=5148
 
-# ASP.NET Core will use PORT environment variable automatically via ASPNETCORE_URLS
-# If PORT is not set, it defaults to 8080
+# The application will use the PORT environment variable set at runtime
+# This EXPOSE is for documentation; the actual port mapping is done in docker-compose
 ENTRYPOINT ["dotnet", "programacion-proyecto-backend.dll"]
 
