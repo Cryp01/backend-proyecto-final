@@ -24,12 +24,13 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 # Copy published app
 COPY --from=publish /app/publish .
 
-# Expose port
+# Expose port (will be set by PORT environment variable)
 EXPOSE 8080
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+# ASP.NET Core will use PORT environment variable automatically via ASPNETCORE_URLS
+# If PORT is not set, it defaults to 8080
 ENTRYPOINT ["dotnet", "programacion-proyecto-backend.dll"]
 

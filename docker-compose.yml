@@ -1,49 +1,20 @@
-version: '3.8'
-
 services:
-  backend:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: programacion-proyecto-backend
     ports:
-      - "${BACKEND_PORT:-8080}:8080"
+      - '${PORT}:${PORT}'
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Host=${DB_HOST:-5.161.108.247};Port=${DB_PORT:-5432};Database=${DB_NAME:-programacion_proyecto_db};Username=${DB_USER:-postgres};Password=${DB_PASSWORD}
-    restart: unless-stopped
+      - 'PORT=${PORT}'
+      - 'ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}'
+      - 'ConnectionStrings__DefaultConnection=Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}'
+    volumes:
+      - './src:/app/src'
     networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=${VITE_API_URL:-/api}
-    container_name: programacion-proyecto-frontend
-    ports:
-      - "${FRONTEND_PORT:-80}:80"
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - coolify
 
 networks:
-  app-network:
-    driver: bridge
+  coolify:
+    external: true
 

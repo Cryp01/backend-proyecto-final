@@ -86,6 +86,10 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Configure port from environment variable (for Coolify/Docker)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://+:{port}");
+
 var app = builder.Build();
 
 // Verificar conexión a la base de datos y ejecutar seeder
