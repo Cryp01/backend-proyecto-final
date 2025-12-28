@@ -5,6 +5,9 @@ nixPkgs = ["dotnet-sdk_7"]
 # Forzamos la salida a una carpeta llamada 'publish'
 cmds = ["dotnet publish -c Release -o publish"]
 
+[phases.postbuild]
+cmds = ["ls -R publish"]
+
 [start]
 # Apuntamos a la carpeta que definimos arriba
 # Quitamos el '/' inicial de la ruta para que sea relativo al directorio de trabajo
