@@ -2,13 +2,11 @@
 nixPkgs = ["dotnet-sdk_7"]
 
 [phases.build]
-# Forzamos la salida a una carpeta llamada 'publish'
 cmds = ["dotnet publish -c Release -o publish"]
 
-[phases.postbuild]
-cmds = ["ls -R publish"]
-
 [start]
-# Apuntamos a la carpeta que definimos arriba
-# Quitamos el '/' inicial de la ruta para que sea relativo al directorio de trabajo
-cmd = "dotnet publish/programacion-proyecto-backend.dll"
+# Forzamos las variables aquí si no las quieres poner en el panel de control
+cmd = "ASPNETCORE_URLS=http://0.0.0.0:${PORT:-5148} dotnet publish/programacion-proyecto-backend.dll"
+
+[variables]
+ASPNETCORE_ENVIRONMENT = "Production"
