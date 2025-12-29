@@ -6,33 +6,36 @@ using programacion_proyecto_backend.Data;
 using programacion_proyecto_backend.Services;
 using DotNetEnv;
 
-// Cargar variables de entorno desde .env
+// Cargar variables de entorno (.env solo en local, en Docker no molesta)
 Env.Load();
 
-// Habilitar comportamiento legacy de timestamps para compatibilidad con PostgreSQL
+// Compatibilidad timestamps PostgreSQL
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Agregar variables de entorno a la configuración
+// Leer variables de entorno
 builder.Configuration.AddEnvironmentVariables();
 
-// Add services to the container.
+// Controllers
 builder.Services.AddControllers();
 
-// Configurar JWT Authentication
-var jwtKey = builder.Configuration["JWT_KEY"]
-    ?? Environment.GetEnvironmentVariable("JWT_KEY")
+
+// ======================
+// JWT CONFIG
+// ======================
+var jwtKey =
+    Environment.GetEnvironmentVariable("JWT_KEY")
     ?? builder.Configuration["Jwt:Key"]
     ?? "TuClaveSecretaSuperSeguraQueDebeTenerAlMenos32Caracteres2024!";
 
-var jwtIssuer = builder.Configuration["JWT_ISSUER"]
-    ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
+var jwtIssuer =
+    Environment.GetEnvironmentVariable("JWT_ISSUER")
     ?? builder.Configuration["Jwt:Issuer"]
     ?? "ProgramacionProyectoBackend";
 
-var jwtAudience = builder.Configuration["JWT_AUDIENCE"]
-    ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+var jwtAudience =
+    Environment.GetEnvironmentVariable("JWT_AUDIENCE")
     ?? builder.Configuration["Jwt:Audience"]
     ?? "ProgramacionProyectoBackend";
 
@@ -58,41 +61,56 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Configure PostgreSQL Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
-    ?? "Host=localhost;Port=5432;Database=programacion_proyecto_db;Username=postgres;Password=postgres";
+
+// ======================
+// DATABASE CONFIG
+// ======================
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING");
+
+Console.WriteLine($"[DEBUG] DATABASE_CONNECTION_STRING = {connectionString}");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString)
-           .UseSnakeCaseNamingConvention());
+           .UseSnakeCaseNamingConvention()
+);
 
-// Registrar DataSeeder
+// Seeder
 builder.Services.AddScoped<DataSeeder>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// ======================
+// SWAGGER
+// ======================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure CORS
+
+// ======================
+// CORS
+// ======================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
-// Configure port from environment variable (for Coolify/Docker)
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
+// ======================
+// PORT (Coolify / Docker)
+// ======================
+var port = Environment.GetEnvironmentVariable("PORT") ?? "3000";
 builder.WebHost.UseUrls($"http://+:{port}");
 
 var app = builder.Build();
 
-// Verificar conexión a la base de datos y ejecutar seeder
+
+// ======================
+// DB CONNECTION TEST (REAL)
+// ======================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -101,35 +119,32 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        var canConnect = await context.Database.CanConnectAsync();
-        if (canConnect)
-        {
-            logger.LogInformation("✅ Conexión exitosa a PostgreSQL en {Host}",
-                context.Database.GetConnectionString()?.Split(';')[0].Replace("Host=", ""));
+        logger.LogInformation("🔍 Probando conexión a PostgreSQL...");
+        context.Database.OpenConnection();
+        logger.LogInformation("✅ PostgreSQL CONECTADO CORRECTAMENTE");
 
-            // Ejecutar seeder
-            var seeder = services.GetRequiredService<DataSeeder>();
-            await seeder.SeedAsync();
-        }
-        else
-        {
-            logger.LogWarning("⚠️ No se pudo conectar a la base de datos PostgreSQL");
-        }
+        // Ejecutar seeder
+        var seeder = services.GetRequiredService<DataSeeder>();
+        await seeder.SeedAsync();
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "❌ Error al intentar conectar a PostgreSQL: {Message}", ex.Message);
+        logger.LogError(ex, "❌ ERROR REAL AL CONECTAR CON POSTGRES");
     }
 }
 
-// Configure the HTTP request pipeline.
+
+// ======================
+// MIDDLEWARE
+// ======================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// ❌ IMPORTANTE: quitar HTTPS en Docker/Coolify
+// app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 

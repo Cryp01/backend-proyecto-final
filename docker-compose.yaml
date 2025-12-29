@@ -8,6 +8,3 @@ services:
       DATABASE_CONNECTION_STRING: ${DATABASE_CONNECTION_STRING}
     expose:
       - "3000"
-
-volumes:
-  pgdata:
