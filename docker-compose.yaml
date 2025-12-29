@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    environment:
+      PORT: ${PORT:-5148}
+      DATABASE_CONNECTION_STRING: ${DATABASE_CONNECTION_STRING}
+      JWT_KEY: ${JWT_KEY}
+      JWT_ISSUER: ${JWT_ISSUER:-ProgramacionProyectoBackend}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-ProgramacionProyectoBackend}
+      JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-1440}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+    ports:
+      - "${PORT:-5148}:${PORT:-5148}"
+
+volumes:
+  pgdata:
